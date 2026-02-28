@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bitcoin Tracker 🐼</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #1a1a1a; color: white; }
+        canvas { max-width: 800px; margin: 20px auto; }
+        .price-card { background: #333; padding: 20px; border-radius: 10px; display: inline-block; margin: 20px; }
+        h1 { color: #f2a900; }
+    </style>
+</head>
+<body>
+    <h1>Bitcoin Price Tracker 🐼💰</h1>
+    
+    <div class="price-card">
+        <h2>Current Price</h2>
+        <h1 id="price">Loading...</h1>
+    </div>
+
+    <canvas id="priceChart"></canvas>
+
+    <script>
+        const ctx = document.getElementById("priceChart").getContext("2d");
+        const chart = new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: [],
+                datasets: [{
+                    label: "BTC Price (USD)",
+                    data: [],
+                    borderColor: "#f2a900",
+                    tension: 0.1
+                }]
+            }
+        });
+
+        async function updatePrice() {
+            try {
+                const response = await fetch("/price");
+                const data = await response.json();
+                document.getElementById("price").innerText = "$" + data.bitcoin_price_usd.toLocaleString();
+                
+                // Add to chart (simple simulation for now)
+                const time = new Date().toLocaleTimeString();
+                chart.data.labels.push(time);
+                chart.data.datasets[0].data.push(data.bitcoin_price_usd);
+                
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+                chart.update();
+            } catch (e) {
+                console.error("Error fetching price:", e);
+            }
+        }
+
+        setInterval(updatePrice, 5000); // Update every 5 seconds
+        updatePrice();
+    </script>
+</body>
+</html>
